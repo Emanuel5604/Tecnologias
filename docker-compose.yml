@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: pinterest_user
+      POSTGRES_PASSWORD: pinterest_password
+      POSTGRES_DB: pinterest_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  backend:
+    build: ./backend
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./uploads:/app/uploads
+      - ./frontend:/app/frontend
+    environment:
+      DATABASE_URL: postgresql://pinterest_user:pinterest_password@db:5432/pinterest_db
+      SECRET_KEY: supersecretkey_change_in_production
+    depends_on:
+      - db
+    restart: always
+
+volumes:
+  postgres_data:

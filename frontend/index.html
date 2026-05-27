@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pinterest Clone</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">Pinterest Clone</div>
+        <div class="nav-actions">
+            <button id="btn-login-modal" class="btn">Login</button>
+            <button id="btn-register-modal" class="btn btn-primary">Sign Up</button>
+            <button id="btn-upload-modal" class="btn btn-primary hidden">Upload Image</button>
+            <button id="btn-logout" class="btn hidden">Logout</button>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div id="feed" class="masonry-grid">
+            <!-- Images will be dynamically loaded here -->
+        </div>
+    </main>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 id="auth-title">Login</h2>
+            <form id="auth-form">
+                <input type="text" id="username" placeholder="Username" required>
+                <input type="email" id="email" placeholder="Email (Register only)" class="hidden">
+                <input type="password" id="password" placeholder="Password" required>
+                <button type="submit" class="btn btn-primary full-width">Submit</button>
+            </form>
+            <p id="auth-error" class="error-msg"></p>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="upload-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-upload-btn">&times;</span>
+            <h2>Upload Image</h2>
+            <form id="upload-form">
+                <input type="text" id="img-title" placeholder="Title" required>
+                <input type="text" id="img-desc" placeholder="Description">
+                <input type="file" id="img-file" accept="image/*" required>
+                <button type="submit" class="btn btn-primary full-width">Upload</button>
+            </form>
+            <p id="upload-error" class="error-msg"></p>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
