@@ -97,6 +97,10 @@ async def upload_image(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
+    # Validate file
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="El archivo debe ser una imagen")
+    
     # Generate unique filename
     ext = file.filename.split('.')[-1]
     filename = f"{uuid4()}.{ext}"
@@ -117,26 +121,104 @@ async def upload_image(
     return new_image
 
 @app.get("/api/images/", response_model=list[schemas.ImageResponse])
-def get_images(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    images = db.query(models.Image).order_by(models.Image.created_at.desc()).offset(skip).limit(limit).all()
+def get_images(
+    skip: int = 0, 
+    limit: int = 100,
+    search: str = None,
+    sort_by: str = "newest",
+    db: Session = Depends(get_db)
+):
+    query = db.query(models.Image)
+    
+    # Filter by search query
+    if search and search.strip():
+        search_term = f"%{search.strip()}%"
+        query = query.filter(
+            (models.Image.title.ilike(search_term)) |
+            (models.Image.description.ilike(search_term))
+        )
+    
+    # Sort
+    if sort_by == "oldest":
+        query = query.order_by(models.Image.created_at.asc())
+    else:  # newest (default)
+        query = query.order_by(models.Image.created_at.desc())
+    
+    images = query.offset(skip).limit(limit).all()
     return images
+
+@app.get("/api/images/user/{user_id}", response_model=list[schemas.ImageResponse])
+def get_user_images(
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+    images = db.query(models.Image).filter(
+        models.Image.user_id == user_id
+    ).order_by(models.Image.created_at.desc()).all()
+    
+    if not images:
+        raise HTTPException(status_code=404, detail="No images found for this user")
+    
+    return images
+
+@app.get("/api/images/{image_id}", response_model=schemas.ImageResponse)
+def get_image(
+    image_id: int,
+    db: Session = Depends(get_db)
+):
+    image = db.query(models.Image).filter(models.Image.id == image_id).first()
+    if not image:
+        raise HTTPException(status_code=404, detail="Imagen no encontrada")
+    return image
 
 @app.get("/api/images/{image_id}/download")
 def download_image(image_id: int, db: Session = Depends(get_db)):
     image = db.query(models.Image).filter(models.Image.id == image_id).first()
     if not image:
-        raise HTTPException(status_code=404, detail="Image not found")
+        raise HTTPException(status_code=404, detail="Imagen no encontrada")
     
     file_path = UPLOAD_DIR / image.filename
     if not file_path.exists():
-        raise HTTPException(status_code=404, detail="File not found on server")
+        raise HTTPException(status_code=404, detail="Archivo no encontrado en el servidor")
         
     return FileResponse(path=str(file_path), filename=image.filename, media_type="application/octet-stream")
+
+@app.delete("/api/images/{image_id}")
+def delete_image(
+    image_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    image = db.query(models.Image).filter(models.Image.id == image_id).first()
+    if not image:
+        raise HTTPException(status_code=404, detail="Imagen no encontrada")
+    
+    if image.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para eliminar esta imagen")
+    
+    file_path = UPLOAD_DIR / image.filename
+    if file_path.exists():
+        file_path.unlink()
+    
+    db.delete(image)
+    db.commit()
+    
+    return {"message": "Imagen eliminada exitosamente"}
+
+@app.get("/api/stats")
+def get_stats(db: Session = Depends(get_db)):
+    total_images = db.query(models.Image).count()
+    total_users = db.query(models.User).count()
+    
+    return {
+        "total_images": total_images,
+        "total_users": total_users
+    }
 
 @app.get("/uploads/{filename}")
 def serve_image(filename: str):
     safe_name = os.path.basename(filename)
     file_path = UPLOAD_DIR / safe_name
     if not file_path.exists():
-        raise HTTPException(status_code=404, detail="File not found")
+        raise HTTPException(status_code=404, detail="Archivo no encontrado")
     return FileResponse(str(file_path))

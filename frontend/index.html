@@ -1,53 +1,134 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pinterest Clone</title>
+    <title>Colección Visual - Descubre y Comparte Imágenes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
+    <!-- Navigation Bar -->
     <nav class="navbar">
-        <div class="logo">Pinterest Clone</div>
-        <div class="nav-actions">
-            <button id="btn-login-modal" class="btn">Login</button>
-            <button id="btn-register-modal" class="btn btn-primary">Sign Up</button>
-            <button id="btn-upload-modal" class="btn btn-primary hidden">Upload Image</button>
-            <button id="btn-logout" class="btn hidden">Logout</button>
+        <div class="navbar-container">
+            <div class="logo">
+                <i class="fas fa-th"></i>
+                <span class="logo-text">Colección Visual</span>
+            </div>
+            
+            <div class="search-container hidden-mobile">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="Buscar imágenes...">
+            </div>
+            
+            <div class="nav-actions">
+                <button id="btn-search-mobile" class="btn-icon hidden-desktop">
+                    <i class="fas fa-search"></i>
+                </button>
+                <button id="btn-upload-modal" class="btn btn-primary hidden">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <span class="hidden-mobile">Subir</span>
+                </button>
+                <button id="btn-login-modal" class="btn">Ingresar</button>
+                <button id="btn-register-modal" class="btn btn-primary">Registrarse</button>
+                <div class="user-menu hidden">
+                    <button id="btn-user-profile" class="btn-icon">
+                        <i class="fas fa-user-circle"></i>
+                    </button>
+                    <button id="btn-logout" class="btn btn-danger">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span class="hidden-mobile">Salir</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </nav>
 
-    <main class="container">
-        <div id="feed" class="masonry-grid">
-            <!-- Images will be dynamically loaded here -->
+    <!-- Mobile Search -->
+    <div id="mobile-search" class="mobile-search hidden">
+        <input type="text" id="search-input-mobile" placeholder="Buscar imágenes...">
+        <button id="close-search-mobile" class="btn-icon">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        <div class="container">
+            <div id="feed" class="masonry-grid">
+                <!-- Images will be dynamically loaded here -->
+            </div>
+            <div id="loading" class="loading hidden">
+                <div class="spinner"></div>
+            </div>
+            <div id="no-results" class="no-results hidden">
+                <i class="fas fa-inbox"></i>
+                <p>No hay imágenes para mostrar</p>
+            </div>
         </div>
     </main>
 
     <!-- Auth Modal -->
     <div id="auth-modal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h2 id="auth-title">Login</h2>
+        <div class="modal-overlay"></div>
+        <div class="modal-content auth-modal">
+            <button class="close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+            <h2 id="auth-title">Ingresar</h2>
             <form id="auth-form">
-                <input type="text" id="username" placeholder="Username" required>
-                <input type="email" id="email" placeholder="Email (Register only)" class="hidden">
-                <input type="password" id="password" placeholder="Password" required>
-                <button type="submit" class="btn btn-primary full-width">Submit</button>
+                <div class="form-group">
+                    <label for="username">Usuario</label>
+                    <input type="text" id="username" placeholder="Tu usuario" required>
+                </div>
+                <div class="form-group" id="email-group" style="display: none;">
+                    <label for="email">Correo Electrónico</label>
+                    <input type="email" id="email" placeholder="tu@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" placeholder="Tu contraseña" required>
+                </div>
+                <button type="submit" class="btn btn-primary full-width">
+                    <span id="auth-submit-text">Ingresar</span>
+                </button>
             </form>
             <p id="auth-error" class="error-msg"></p>
+            <p class="auth-toggle">
+                <span id="auth-toggle-text">¿No tienes cuenta?</span>
+                <button type="button" id="auth-toggle-btn" class="btn-link">Registrarse</button>
+            </p>
         </div>
     </div>
 
     <!-- Upload Modal -->
     <div id="upload-modal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close-upload-btn">&times;</span>
-            <h2>Upload Image</h2>
+        <div class="modal-overlay"></div>
+        <div class="modal-content upload-modal">
+            <button class="close-upload-btn">
+                <i class="fas fa-times"></i>
+            </button>
+            <h2>Subir Imagen</h2>
             <form id="upload-form">
-                <input type="text" id="img-title" placeholder="Title" required>
-                <input type="text" id="img-desc" placeholder="Description">
-                <input type="file" id="img-file" accept="image/*" required>
-                <button type="submit" class="btn btn-primary full-width">Upload</button>
+                <div class="form-group">
+                    <label for="img-title">Título</label>
+                    <input type="text" id="img-title" placeholder="Título de la imagen" required>
+                </div>
+                <div class="form-group">
+                    <label for="img-desc">Descripción</label>
+                    <textarea id="img-desc" placeholder="Describe tu imagen" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="img-file" class="file-input-label">
+                        <i class="fas fa-image"></i>
+                        <span id="file-name">Selecciona una imagen</span>
+                    </label>
+                    <input type="file" id="img-file" accept="image/*" required hidden>
+                </div>
+                <button type="submit" class="btn btn-primary full-width">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <span>Subir Imagen</span>
+                </button>
             </form>
             <p id="upload-error" class="error-msg"></p>
         </div>
