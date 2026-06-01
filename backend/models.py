@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -10,9 +11,11 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
+    bio = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    images = relationship("Image", back_populates="owner")
+    images = relationship("Image", back_populates="owner", cascade="all, delete-orphan")
+
 
 class Image(Base):
     __tablename__ = "images"
